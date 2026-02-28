@@ -655,6 +655,41 @@
       margin-top: 2px;
     }
 
+    /* === Main Tabs === */
+    .main-tabs {
+      display: flex;
+      gap: 6px;
+      padding: 10px 20px;
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      background: var(--jungle);
+    }
+    .main-tab {
+      flex: 1;
+      padding: 8px 4px;
+      border-radius: 12px;
+      background: var(--mist);
+      border: 1px solid rgba(255,255,255,0.07);
+      color: var(--cream);
+      font-family: 'Nunito', sans-serif;
+      font-weight: 800;
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      cursor: pointer;
+      text-align: center;
+      transition: background 0.2s, border-color 0.2s, color 0.2s;
+    }
+    .main-tab:hover { background: rgba(255,255,255,0.1); }
+    .main-tab.active {
+      background: rgba(245,197,24,0.12);
+      border-color: rgba(245,197,24,0.3);
+      color: var(--gold);
+    }
+    .tab-panel { display: none; }
+    .tab-panel.active { display: block; }
+
     /* Scrollable content */
     .scroll-area {
       flex: 1;
@@ -717,32 +752,48 @@
   </div>
 
   <div class="scroll-area">
-    <div class="section-header">
-      <div class="section-title">My Collection</div>
-      <div class="section-count" id="coll-count">0 bananas</div>
+    <div class="main-tabs">
+      <button class="main-tab active" data-tab="collection" onclick="setMainTab('collection')">Collection</button>
+      <button class="main-tab" data-tab="achievements" onclick="setMainTab('achievements')">Achievements</button>
+      <button class="main-tab" data-tab="history" onclick="setMainTab('history')">History</button>
     </div>
-    <div class="collection-grid" id="collection-grid">
-      <div class="empty-state">
-        <div class="e-icon">🌱</div>
-        <p>Walk to discover<br>your first banana!</p>
+
+    <div class="tab-panel active" id="panel-collection">
+      <div class="section-header">
+        <div class="section-title">My Collection</div>
+        <div class="section-count" id="coll-count">0 bananas</div>
       </div>
+      <div class="collection-grid" id="collection-grid">
+        <div class="empty-state">
+          <div class="e-icon">🌱</div>
+          <p>Walk to discover<br>your first banana!</p>
+        </div>
+      </div>
+      <div style="height:20px"></div>
     </div>
-    <div class="section-header">
-      <div class="section-title">Achievements</div>
-      <div class="section-count" id="achieve-count">0 / 18</div>
+
+    <div class="tab-panel" id="panel-achievements">
+      <div class="section-header">
+        <div class="section-title">Achievements</div>
+        <div class="section-count" id="achieve-count">0 / 18</div>
+      </div>
+      <div class="achievement-grid" id="achievement-grid"></div>
+      <div style="height:20px"></div>
     </div>
-    <div class="achievement-grid" id="achievement-grid"></div>
-    <div class="section-header">
-      <div class="section-title">Step History</div>
+
+    <div class="tab-panel" id="panel-history">
+      <div class="section-header">
+        <div class="section-title">Step History</div>
+      </div>
+      <div class="history-tabs">
+        <button class="history-tab active" data-tab="day" onclick="setHistoryTab('day')">Day</button>
+        <button class="history-tab" data-tab="week" onclick="setHistoryTab('week')">Week</button>
+        <button class="history-tab" data-tab="month" onclick="setHistoryTab('month')">Month</button>
+        <button class="history-tab" data-tab="year" onclick="setHistoryTab('year')">Year</button>
+      </div>
+      <div class="history-cards" id="history-display"></div>
+      <div style="height:20px"></div>
     </div>
-    <div class="history-tabs">
-      <button class="history-tab active" data-tab="day" onclick="setHistoryTab('day')">Day</button>
-      <button class="history-tab" data-tab="week" onclick="setHistoryTab('week')">Week</button>
-      <button class="history-tab" data-tab="month" onclick="setHistoryTab('month')">Month</button>
-      <button class="history-tab" data-tab="year" onclick="setHistoryTab('year')">Year</button>
-    </div>
-    <div class="history-cards" id="history-display"></div>
-    <div style="height:20px"></div>
   </div>
 </div>
 
@@ -1387,6 +1438,22 @@ function renderHistory() {
       <div class="hc-sub">${bestLabel || 'No data yet'}</div>
     </div>
   `;
+}
+
+// ============================================================
+//  MAIN TABS
+// ============================================================
+let mainTab = 'collection';
+
+function setMainTab(tab) {
+  mainTab = tab;
+  document.querySelectorAll('.main-tab').forEach(el => {
+    el.classList.toggle('active', el.dataset.tab === tab);
+  });
+  document.querySelectorAll('.tab-panel').forEach(el => {
+    el.classList.toggle('active', el.id === 'panel-' + tab);
+  });
+  if (tab === 'history') renderHistory();
 }
 
 // ============================================================
