@@ -1,4 +1,4 @@
-const CACHE_NAME = 'banana-walk-v5';
+const CACHE_NAME = 'banana-walk-v6';
 const ASSETS = [
   './', './index.html', './manifest.json',
   './bananas/classic.svg', './bananas/twisted.svg',
