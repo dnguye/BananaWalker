@@ -1,0 +1,17 @@
+{
+  "name": "Banana Walk",
+  "short_name": "BananaWalk",
+  "description": "Walk to collect rare bananas!",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#0d2b1a",
+  "theme_color": "#f5c518",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'><rect width='192' height='192' rx='32' fill='%230d2b1a'/><text y='140' x='16' font-size='140'>🍌</text></svg>",
+      "sizes": "192x192",
+      "type": "image/svg+xml"
+    }
+  ]
+}

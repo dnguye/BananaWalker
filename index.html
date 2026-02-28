@@ -1,0 +1,1453 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="theme-color" content="#0d2b1a">
+  <title>Banana Walk</title>
+  <link rel="manifest" href="manifest.json">
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+
+  <style>
+    :root {
+      --jungle: #0d2b1a;
+      --deep: #071810;
+      --leaf: #1a5c30;
+      --lime: #4caf50;
+      --gold: #f5c518;
+      --amber: #ffab00;
+      --cream: #fff8e7;
+      --mist: rgba(255,255,255,0.07);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Nunito', sans-serif;
+      background: var(--jungle);
+      color: var(--cream);
+      min-height: 100vh;
+      overflow-x: hidden;
+      user-select: none;
+    }
+
+    /* === Animated jungle background === */
+    .bg {
+      position: fixed; inset: 0; z-index: 0; overflow: hidden;
+      background: radial-gradient(ellipse at 20% 0%, #1a5c30 0%, #071810 55%);
+    }
+    .bg::before {
+      content: '';
+      position: absolute; inset: 0;
+      background-image:
+        radial-gradient(circle at 80% 20%, rgba(245,197,24,0.06) 0%, transparent 45%),
+        radial-gradient(circle at 10% 80%, rgba(76,175,80,0.08) 0%, transparent 40%);
+    }
+    .leaf {
+      position: absolute;
+      font-size: 3rem;
+      opacity: 0.07;
+      animation: sway 6s ease-in-out infinite;
+    }
+    @keyframes sway {
+      0%, 100% { transform: rotate(-8deg) scale(1); }
+      50% { transform: rotate(8deg) scale(1.05); }
+    }
+
+    /* === Layout === */
+    #app {
+      position: relative; z-index: 1;
+      display: flex; flex-direction: column;
+      min-height: 100vh;
+      max-width: 420px; margin: 0 auto;
+      padding: 0 0 90px;
+    }
+
+    /* === Header === */
+    header {
+      padding: 18px 20px 12px;
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .logo {
+      font-family: 'Fredoka One', cursive;
+      font-size: 1.6rem;
+      color: var(--gold);
+      letter-spacing: 0.5px;
+      text-shadow: 0 2px 12px rgba(245,197,24,0.35);
+    }
+    .logo span { color: var(--cream); }
+
+    /* === Step counter hero === */
+    .hero {
+      margin: 8px 20px 0;
+      background: var(--mist);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 24px;
+      padding: 24px 24px 20px;
+      text-align: center;
+      backdrop-filter: blur(8px);
+      position: relative;
+      overflow: hidden;
+    }
+    .hero::before {
+      content: '';
+      position: absolute;
+      top: -40px; right: -40px;
+      width: 140px; height: 140px;
+      background: radial-gradient(circle, rgba(245,197,24,0.12) 0%, transparent 70%);
+      border-radius: 50%;
+    }
+    .step-icon {
+      font-size: 2.8rem;
+      margin-bottom: 4px;
+      display: block;
+      animation: bounce-step 0.3s ease;
+    }
+    @keyframes bounce-step {
+      0% { transform: scale(1); }
+      50% { transform: scale(1.25); }
+      100% { transform: scale(1); }
+    }
+    .step-count {
+      font-family: 'Fredoka One', cursive;
+      font-size: 4.5rem;
+      line-height: 1;
+      color: var(--gold);
+      text-shadow: 0 4px 20px rgba(245,197,24,0.4);
+      transition: transform 0.15s ease;
+    }
+    .step-count.ping {
+      animation: count-ping 0.25s ease;
+    }
+    @keyframes count-ping {
+      0% { transform: scale(1); }
+      50% { transform: scale(1.1); color: #fff; }
+      100% { transform: scale(1); }
+    }
+    .step-label {
+      font-size: 0.8rem;
+      font-weight: 700;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      opacity: 0.5;
+      margin-top: 2px;
+    }
+
+    /* Progress to next drop */
+    .next-drop-row {
+      display: flex; align-items: center; gap: 10px;
+      margin-top: 16px;
+    }
+    .next-drop-bar-wrap {
+      flex: 1;
+      height: 8px;
+      background: rgba(255,255,255,0.1);
+      border-radius: 99px;
+      overflow: hidden;
+    }
+    .next-drop-bar {
+      height: 100%;
+      background: linear-gradient(90deg, var(--leaf), var(--gold));
+      border-radius: 99px;
+      transition: width 0.4s ease;
+      width: 0%;
+    }
+    .next-drop-label {
+      font-size: 0.72rem;
+      font-weight: 700;
+      opacity: 0.55;
+      white-space: nowrap;
+    }
+
+    /* === Status pill === */
+    .status-pill {
+      display: inline-flex; align-items: center; gap: 6px;
+      margin: 12px 20px 0; align-self: center;
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 99px;
+      padding: 7px 16px;
+      font-size: 0.8rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .status-pill:hover { background: rgba(255,255,255,0.11); }
+    .status-dot {
+      width: 8px; height: 8px; border-radius: 50%;
+      background: #999;
+      transition: background 0.3s;
+    }
+    .status-dot.active { background: #4caf50; box-shadow: 0 0 6px #4caf50; }
+    .status-dot.denied { background: #f44336; }
+
+    /* === Collection === */
+    .section-header {
+      padding: 22px 20px 10px;
+      display: flex; align-items: baseline; gap: 10px;
+    }
+    .section-title {
+      font-family: 'Fredoka One', cursive;
+      font-size: 1.2rem;
+      color: var(--gold);
+    }
+    .section-count {
+      font-size: 0.75rem;
+      font-weight: 700;
+      opacity: 0.45;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+    }
+
+    .collection-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+      padding: 0 20px;
+    }
+
+    /* === Banana Image in cards === */
+    .banana-img {
+      width: 64px;
+      height: 80px;
+      object-fit: contain;
+      display: block;
+      margin: 0 auto 4px;
+      transition: transform 0.2s;
+      filter: drop-shadow(0 2px 6px rgba(0,0,0,0.4));
+    }
+
+    .banana-card {
+      background: var(--mist);
+      border: 1px solid rgba(255,255,255,0.07);
+      border-radius: 18px;
+      padding: 14px 10px 12px;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+      transition: transform 0.2s, box-shadow 0.2s;
+      cursor: default;
+    }
+    .banana-card:active { transform: scale(0.96); }
+    .banana-card:hover .banana-img { transform: scale(1.08); }
+
+    .banana-card .b-name {
+      font-size: 0.68rem;
+      font-weight: 800;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+      opacity: 0.65;
+      line-height: 1.2;
+    }
+    .banana-card .b-count {
+      font-family: 'Fredoka One', cursive;
+      font-size: 1.3rem;
+      color: var(--gold);
+      margin-top: 2px;
+    }
+    .banana-card .b-value {
+      font-size: 0.58rem;
+      font-weight: 700;
+      opacity: 0.4;
+      margin-top: 1px;
+    }
+    .banana-card .rarity-badge {
+      position: absolute;
+      top: 7px; right: 7px;
+      font-size: 0.55rem;
+      font-weight: 800;
+      letter-spacing: 0.8px;
+      text-transform: uppercase;
+      padding: 2px 5px;
+      border-radius: 99px;
+    }
+    .r-common .rarity-badge { background: rgba(76,175,80,0.2); color: #81c784; }
+    .r-uncommon .rarity-badge { background: rgba(33,150,243,0.2); color: #64b5f6; }
+    .r-rare .rarity-badge { background: rgba(156,39,176,0.2); color: #ce93d8; }
+    .r-epic .rarity-badge { background: rgba(255,87,34,0.2); color: #ff8a65; }
+    .r-legendary .rarity-badge { background: rgba(245,197,24,0.25); color: var(--gold); }
+    .r-mythic .rarity-badge {
+      background: linear-gradient(90deg, #FF1744, #FF9100, #FFEA00, #00E676, #00B0FF, #651FFF, #D500F9);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      font-weight: 900;
+      animation: mythic-badge-shift 3s linear infinite;
+      background-size: 200% 100%;
+    }
+    @keyframes mythic-badge-shift {
+      0% { background-position: 0% 50%; }
+      100% { background-position: 200% 50%; }
+    }
+
+    .banana-card.r-mythic {
+      border: 2px solid transparent;
+      background-image: linear-gradient(var(--deep), var(--deep)),
+        linear-gradient(135deg, #FF1744, #FF9100, #FFEA00, #00E676, #00B0FF, #651FFF, #D500F9, #FF1744);
+      background-origin: border-box;
+      background-clip: padding-box, border-box;
+      background-size: 100% 100%, 300% 300%;
+      animation: mythic-border 4s linear infinite;
+      box-shadow: 0 0 22px rgba(0,229,255,0.2), 0 0 44px rgba(101,31,255,0.12);
+    }
+    @keyframes mythic-border {
+      0% { background-position: 0 0, 0% 0%; }
+      100% { background-position: 0 0, 300% 300%; }
+    }
+    .banana-card.r-mythic::after {
+      content: '';
+      position: absolute; inset: 0;
+      border-radius: 18px;
+      background: linear-gradient(135deg,
+        rgba(255,23,68,0.06), rgba(0,230,118,0.06),
+        rgba(0,176,255,0.06), rgba(213,0,249,0.06));
+      animation: mythic-shimmer 3s ease-in-out infinite alternate;
+      pointer-events: none;
+    }
+    @keyframes mythic-shimmer {
+      0% { opacity: 0.3; }
+      100% { opacity: 0.8; }
+    }
+
+    .banana-card.r-legendary {
+      border-color: rgba(245,197,24,0.3);
+      background: rgba(245,197,24,0.06);
+      box-shadow: 0 0 18px rgba(245,197,24,0.08);
+    }
+    .banana-card.r-epic {
+      border-color: rgba(255,87,34,0.2);
+      background: rgba(255,87,34,0.04);
+    }
+    .banana-card.r-rare {
+      border-color: rgba(156,39,176,0.2);
+      background: rgba(156,39,176,0.04);
+    }
+    .banana-card.r-uncommon {
+      border-color: rgba(33,150,243,0.15);
+    }
+
+    /* New pop animation */
+    .banana-card.new-pop {
+      animation: card-pop 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+    @keyframes card-pop {
+      0% { transform: scale(0.6); opacity: 0; }
+      100% { transform: scale(1); opacity: 1; }
+    }
+
+    /* === Drop notification === */
+    #drop-notif {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%) scale(0);
+      z-index: 100;
+      background: var(--deep);
+      border: 2px solid rgba(245,197,24,0.3);
+      border-radius: 28px;
+      padding: 28px 36px;
+      text-align: center;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.6);
+      pointer-events: none;
+      transition: transform 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.35s;
+      opacity: 0;
+      min-width: 220px;
+    }
+    #drop-notif.show {
+      transform: translate(-50%, -50%) scale(1);
+      opacity: 1;
+    }
+
+    /* Big image in drop notification */
+    #dn-img {
+      width: 80px;
+      height: 110px;
+      object-fit: contain;
+      display: block;
+      margin: 0 auto 8px;
+      filter: drop-shadow(0 4px 14px rgba(0,0,0,0.5));
+      animation: img-bounce 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.5);
+    }
+    @keyframes img-bounce {
+      0% { transform: scale(0.4) rotate(-15deg); opacity: 0; }
+      100% { transform: scale(1) rotate(0deg); opacity: 1; }
+    }
+
+    #drop-notif .drop-title {
+      font-family: 'Fredoka One', cursive;
+      font-size: 1.5rem;
+      color: var(--gold);
+    }
+    #drop-notif .drop-name {
+      font-size: 0.85rem;
+      font-weight: 700;
+      opacity: 0.6;
+      margin-top: 4px;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+    }
+    #drop-notif .drop-rarity {
+      display: inline-block;
+      margin-top: 10px;
+      font-size: 0.72rem;
+      font-weight: 800;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      padding: 3px 10px;
+      border-radius: 99px;
+    }
+
+    /* === Falling banana particles === */
+    .falling-banana {
+      position: fixed;
+      top: -80px;
+      z-index: 99;
+      pointer-events: none;
+      animation: fall-down 1.8s ease-in forwards;
+    }
+    .falling-banana .fall-img {
+      object-fit: contain;
+      filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));
+    }
+    @keyframes fall-down {
+      0% { transform: rotate(0deg) translateY(0); opacity: 1; }
+      80% { opacity: 1; }
+      100% { transform: translateY(110vh) rotate(360deg); opacity: 0; }
+    }
+
+    /* === Bottom nav === */
+    .bottom-nav {
+      position: fixed; bottom: 0; left: 0; right: 0;
+      background: linear-gradient(to top, var(--deep) 70%, transparent);
+      padding: 10px 24px 20px;
+      display: flex; justify-content: center; gap: 16px;
+      z-index: 10;
+    }
+    .nav-btn {
+      flex: 1; max-width: 160px;
+      background: rgba(255,255,255,0.07);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 16px;
+      padding: 10px;
+      color: var(--cream);
+      font-family: 'Nunito', sans-serif;
+      font-weight: 800;
+      font-size: 0.75rem;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: background 0.2s, transform 0.15s;
+      display: flex; align-items: center; justify-content: center; gap: 6px;
+    }
+    .nav-btn:active { transform: scale(0.96); }
+    .nav-btn.primary {
+      background: var(--gold);
+      color: var(--deep);
+      border-color: var(--gold);
+    }
+    .nav-btn.primary:hover { background: var(--amber); }
+
+    #sim-btn { font-size: 1rem; }
+
+    /* === Empty state === */
+    .empty-state {
+      grid-column: 1 / -1;
+      text-align: center;
+      padding: 30px 20px;
+      opacity: 0.35;
+    }
+    .empty-state .e-icon { font-size: 3rem; margin-bottom: 10px; }
+    .empty-state p { font-size: 0.85rem; font-weight: 700; line-height: 1.5; }
+
+    /* === Stats bar === */
+    .stats-row {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+      padding: 14px 20px 0;
+    }
+    .stat-box {
+      flex: 1;
+      background: var(--mist);
+      border: 1px solid rgba(255,255,255,0.07);
+      border-radius: 16px;
+      padding: 12px;
+      text-align: center;
+    }
+    .stat-val {
+      font-family: 'Fredoka One', cursive;
+      font-size: 1.5rem;
+      color: var(--gold);
+    }
+    .stat-lbl {
+      font-size: 0.65rem;
+      font-weight: 800;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      opacity: 0.45;
+      margin-top: 1px;
+    }
+
+    /* === Achievement grid === */
+    .achievement-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+      padding: 0 20px;
+    }
+    .achieve-card {
+      background: var(--mist);
+      border: 1px solid rgba(255,255,255,0.07);
+      border-radius: 16px;
+      padding: 14px 12px;
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+    .achieve-card .a-icon {
+      font-size: 1.6rem;
+      flex-shrink: 0;
+      line-height: 1;
+    }
+    .achieve-card .a-info {
+      flex: 1;
+      min-width: 0;
+    }
+    .achieve-card .a-name {
+      font-size: 0.7rem;
+      font-weight: 800;
+      letter-spacing: 0.3px;
+      text-transform: uppercase;
+      color: var(--cream);
+      line-height: 1.2;
+    }
+    .achieve-card .a-desc {
+      font-size: 0.6rem;
+      font-weight: 600;
+      opacity: 0.45;
+      margin-top: 2px;
+      line-height: 1.3;
+    }
+    .achieve-card.locked {
+      opacity: 0.35;
+    }
+    .achieve-card.locked .a-icon {
+      filter: grayscale(1);
+    }
+    .achieve-card.unlocked {
+      border-color: rgba(245,197,24,0.2);
+      box-shadow: 0 0 12px rgba(245,197,24,0.06);
+    }
+    .achieve-card.unlocked .a-name {
+      color: var(--gold);
+    }
+
+    /* === Achievement notification === */
+    #achieve-notif {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%) scale(0);
+      z-index: 110;
+      background: var(--deep);
+      border: 2px solid rgba(245,197,24,0.35);
+      border-radius: 28px;
+      padding: 24px 32px;
+      text-align: center;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.6), 0 0 30px rgba(245,197,24,0.15);
+      pointer-events: none;
+      transition: transform 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.35s;
+      opacity: 0;
+      min-width: 200px;
+    }
+    #achieve-notif.show {
+      transform: translate(-50%, -50%) scale(1);
+      opacity: 1;
+    }
+    #achieve-notif .an-icon {
+      font-size: 2.8rem;
+      display: block;
+      margin-bottom: 6px;
+      animation: img-bounce 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.5);
+    }
+    #achieve-notif .an-title {
+      font-family: 'Fredoka One', cursive;
+      font-size: 1.2rem;
+      color: var(--gold);
+    }
+    #achieve-notif .an-name {
+      font-size: 0.85rem;
+      font-weight: 800;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+      margin-top: 4px;
+      color: var(--cream);
+    }
+    #achieve-notif .an-desc {
+      font-size: 0.75rem;
+      font-weight: 600;
+      opacity: 0.5;
+      margin-top: 4px;
+    }
+
+    /* === Step History === */
+    .history-tabs {
+      display: flex;
+      gap: 6px;
+      padding: 0 20px;
+      margin-bottom: 12px;
+    }
+    .history-tab {
+      flex: 1;
+      padding: 8px 4px;
+      border-radius: 12px;
+      background: var(--mist);
+      border: 1px solid rgba(255,255,255,0.07);
+      color: var(--cream);
+      font-family: 'Nunito', sans-serif;
+      font-weight: 800;
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      cursor: pointer;
+      text-align: center;
+      transition: background 0.2s, border-color 0.2s, color 0.2s;
+    }
+    .history-tab:hover { background: rgba(255,255,255,0.1); }
+    .history-tab.active {
+      background: rgba(245,197,24,0.12);
+      border-color: rgba(245,197,24,0.3);
+      color: var(--gold);
+    }
+    .history-cards {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+      padding: 0 20px;
+    }
+    .history-card {
+      background: var(--mist);
+      border: 1px solid rgba(255,255,255,0.07);
+      border-radius: 16px;
+      padding: 14px;
+      text-align: center;
+    }
+    .history-card .hc-label {
+      font-size: 0.65rem;
+      font-weight: 800;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      opacity: 0.45;
+    }
+    .history-card .hc-value {
+      font-family: 'Fredoka One', cursive;
+      font-size: 1.8rem;
+      color: var(--gold);
+      margin-top: 2px;
+    }
+    .history-card .hc-sub {
+      font-size: 0.6rem;
+      font-weight: 700;
+      opacity: 0.35;
+      margin-top: 2px;
+    }
+
+    /* Scrollable content */
+    .scroll-area {
+      flex: 1;
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+    }
+    .scroll-area::-webkit-scrollbar { display: none; }
+  </style>
+</head>
+<body>
+
+<div class="bg">
+  <span class="leaf" style="top:5%;left:-1%;animation-delay:0s;font-size:5rem">🌿</span>
+  <span class="leaf" style="top:30%;right:-1%;animation-delay:1.5s;font-size:4rem">🌴</span>
+  <span class="leaf" style="top:65%;left:3%;animation-delay:3s;font-size:3.5rem">🍃</span>
+  <span class="leaf" style="bottom:15%;right:2%;animation-delay:0.8s;font-size:4.5rem">🌿</span>
+</div>
+
+<div id="app">
+  <header>
+    <div class="logo">Banana<span>Walk</span></div>
+    <div style="font-size:0.75rem;opacity:0.4;font-weight:700">v5.0</div>
+  </header>
+
+  <div class="hero">
+    <span class="step-icon">👟</span>
+    <div class="step-count" id="step-display">0</div>
+    <div class="step-label">steps today</div>
+    <div class="next-drop-row">
+      <div class="next-drop-label">🍌 Next drop</div>
+      <div class="next-drop-bar-wrap">
+        <div class="next-drop-bar" id="drop-bar"></div>
+      </div>
+      <div class="next-drop-label" id="drop-steps-left">—</div>
+    </div>
+  </div>
+
+  <div class="status-pill" id="sensor-pill" onclick="requestMotion()">
+    <div class="status-dot" id="sensor-dot"></div>
+    <span id="sensor-label">Tap to enable step tracking</span>
+  </div>
+
+  <div class="stats-row">
+    <div class="stat-box">
+      <div class="stat-val" id="stat-total">0</div>
+      <div class="stat-lbl">Total Bananas</div>
+    </div>
+    <div class="stat-box">
+      <div class="stat-val" id="stat-unique">0</div>
+      <div class="stat-lbl">Varieties</div>
+    </div>
+    <div class="stat-box">
+      <div class="stat-val" id="stat-worth">0</div>
+      <div class="stat-lbl">Net Worth</div>
+    </div>
+    <div class="stat-box">
+      <div class="stat-val" id="stat-rarest">—</div>
+      <div class="stat-lbl">Rarest Found</div>
+    </div>
+  </div>
+
+  <div class="scroll-area">
+    <div class="section-header">
+      <div class="section-title">My Collection</div>
+      <div class="section-count" id="coll-count">0 bananas</div>
+    </div>
+    <div class="collection-grid" id="collection-grid">
+      <div class="empty-state">
+        <div class="e-icon">🌱</div>
+        <p>Walk to discover<br>your first banana!</p>
+      </div>
+    </div>
+    <div class="section-header">
+      <div class="section-title">Achievements</div>
+      <div class="section-count" id="achieve-count">0 / 18</div>
+    </div>
+    <div class="achievement-grid" id="achievement-grid"></div>
+    <div class="section-header">
+      <div class="section-title">Step History</div>
+    </div>
+    <div class="history-tabs">
+      <button class="history-tab active" data-tab="day" onclick="setHistoryTab('day')">Day</button>
+      <button class="history-tab" data-tab="week" onclick="setHistoryTab('week')">Week</button>
+      <button class="history-tab" data-tab="month" onclick="setHistoryTab('month')">Month</button>
+      <button class="history-tab" data-tab="year" onclick="setHistoryTab('year')">Year</button>
+    </div>
+    <div class="history-cards" id="history-display"></div>
+    <div style="height:20px"></div>
+  </div>
+</div>
+
+<!-- Achievement notification overlay -->
+<div id="achieve-notif">
+  <div class="an-icon" id="an-icon"></div>
+  <div class="an-title">Achievement Unlocked!</div>
+  <div class="an-name" id="an-name"></div>
+  <div class="an-desc" id="an-desc"></div>
+</div>
+
+<!-- Drop notification overlay -->
+<div id="drop-notif">
+  <img id="dn-img" src="" alt="">
+  <div class="drop-title" id="dn-title">New Banana!</div>
+  <div class="drop-name" id="dn-name"></div>
+  <div class="drop-rarity" id="dn-rarity"></div>
+</div>
+
+<!-- Bottom controls -->
+<div class="bottom-nav">
+  <button class="nav-btn" id="sim-btn" onclick="simulateSteps()">👟 Simulate Steps</button>
+  <button class="nav-btn primary" onclick="resetGame()">🔄 Reset</button>
+</div>
+
+<script>
+// ============================================================
+//  BANANA DEFINITIONS — each has an SVG image in bananas/
+// ============================================================
+const BANANAS = [
+  {
+    id: 'classic',
+    name: 'Classic Bunch',
+    img: 'bananas/classic.svg',
+    rarity: 'common',
+    rarityLabel: 'Common',
+    weight: 45,
+    desc: 'The everyday yellow banana everyone loves.',
+  },
+  {
+    id: 'twisted',
+    name: 'Twisted Bunch',
+    img: 'bananas/twisted.svg',
+    rarity: 'common',
+    rarityLabel: 'Common',
+    weight: 20,
+    desc: 'A swirled mutation — still very common.',
+  },
+  {
+    id: 'knotted',
+    name: 'Knotted Nana',
+    img: 'bananas/knotted.svg',
+    rarity: 'uncommon',
+    rarityLabel: 'Uncommon',
+    weight: 12,
+    desc: 'Tied itself in a knot somehow.',
+  },
+  {
+    id: 'giant',
+    name: 'Jumbo Yellow',
+    img: 'bananas/giant.svg',
+    rarity: 'uncommon',
+    rarityLabel: 'Uncommon',
+    weight: 10,
+    desc: 'Oversized and proud of it.',
+  },
+  {
+    id: 'crystal',
+    name: 'Crystal Nana',
+    img: 'bananas/crystal.svg',
+    rarity: 'rare',
+    rarityLabel: 'Rare',
+    weight: 6,
+    desc: 'A stunning amethyst formation.',
+  },
+  {
+    id: 'steampunk',
+    name: 'Steampunk Nana',
+    img: 'bananas/steampunk.svg',
+    rarity: 'rare',
+    rarityLabel: 'Rare',
+    weight: 5,
+    desc: 'Brass gears, leather straps, mystery.',
+  },
+  {
+    id: 'molten',
+    name: 'Molten Drip',
+    img: 'bananas/molten.svg',
+    rarity: 'rare',
+    rarityLabel: 'Rare',
+    weight: 4,
+    desc: 'Perpetually melting. Handle with care.',
+  },
+  {
+    id: 'cactus',
+    name: 'Cactus Nana',
+    img: 'bananas/cactus.svg',
+    rarity: 'rare',
+    rarityLabel: 'Rare',
+    weight: 3,
+    desc: 'Prickly on the outside, sweet within.',
+  },
+  {
+    id: 'mycelium',
+    name: 'Mycelium Nana',
+    img: 'bananas/mycelium.svg',
+    rarity: 'epic',
+    rarityLabel: 'Epic',
+    weight: 3,
+    desc: 'Glowing mushrooms have colonised this one.',
+  },
+  {
+    id: 'geode',
+    name: 'Geode Nana',
+    img: 'bananas/geode.svg',
+    rarity: 'legendary',
+    rarityLabel: 'Legendary',
+    weight: 1,
+    desc: 'A hollow rock brimming with amethyst crystals.',
+  },
+  {
+    id: 'frozen',
+    name: 'Frozen Nana',
+    img: 'bananas/frozen.svg',
+    rarity: 'uncommon',
+    rarityLabel: 'Uncommon',
+    weight: 9,
+    desc: 'Ice-blue with frost crystals and cold mist.',
+  },
+  {
+    id: 'plasma',
+    name: 'Plasma Nana',
+    img: 'bananas/plasma.svg',
+    rarity: 'epic',
+    rarityLabel: 'Epic',
+    weight: 2,
+    desc: 'Electric purple-cyan crackling with lightning.',
+  },
+  {
+    id: 'shadow',
+    name: 'Shadow Nana',
+    img: 'bananas/shadow.svg',
+    rarity: 'epic',
+    rarityLabel: 'Epic',
+    weight: 2,
+    desc: 'Near-black with smoky purple wisps and red eyes.',
+  },
+  {
+    id: 'galactic',
+    name: 'Galactic Nana',
+    img: 'bananas/galactic.svg',
+    rarity: 'legendary',
+    rarityLabel: 'Legendary',
+    weight: 0.8,
+    desc: 'Deep space banana with stars and nebula swirls.',
+  },
+  {
+    id: 'prismatic',
+    name: 'Prismatic Nana',
+    img: 'bananas/prismatic.svg',
+    rarity: 'mythic',
+    rarityLabel: 'Mythic',
+    weight: 0.2,
+    desc: 'The rarest banana — a vibrant rainbow of pure light.',
+  },
+];
+
+// ============================================================
+//  BANANA VALUES
+// ============================================================
+const RARITY_VALUES = { common: 1, uncommon: 5, rare: 25, epic: 100, legendary: 500, mythic: 5000 };
+
+// ============================================================
+//  STATE
+// ============================================================
+let state = {
+  steps: 0,
+  stepsToNextDrop: randomDropInterval(),
+  stepsSinceLastDrop: 0,
+  collection: {},
+  totalDropped: 0,
+  achievements: [],
+  stepHistory: {},
+};
+
+try {
+  const saved = localStorage.getItem('banana-walk-state-v5');
+  if (saved) state = { ...state, ...JSON.parse(saved) };
+  if (!Array.isArray(state.achievements)) state.achievements = [];
+  if (!state.stepHistory || typeof state.stepHistory !== 'object') state.stepHistory = {};
+} catch(e) {}
+
+function save() {
+  try { localStorage.setItem('banana-walk-state-v5', JSON.stringify(state)); } catch(e) {}
+}
+
+function randomDropInterval() {
+  return Math.floor(Math.random() * 36) + 15;
+}
+
+// ============================================================
+//  STEP DETECTION
+// ============================================================
+let motionEnabled = false;
+let lastAcc = 0;
+let stepCooldown = false;
+const ACC_THRESHOLD = 12;
+
+function onMotion(e) {
+  const acc = e.accelerationIncludingGravity;
+  if (!acc) return;
+  const mag = Math.sqrt(acc.x**2 + acc.y**2 + acc.z**2);
+  const delta = Math.abs(mag - lastAcc);
+  lastAcc = mag;
+  if (delta > ACC_THRESHOLD && !stepCooldown) {
+    stepCooldown = true;
+    setTimeout(() => stepCooldown = false, 350);
+    registerStep();
+  }
+}
+
+function registerStep() {
+  state.steps++;
+  state.stepsSinceLastDrop++;
+  recordDailyStep();
+  updateStepUI();
+  if (state.stepsSinceLastDrop >= state.stepsToNextDrop) {
+    state.stepsSinceLastDrop = 0;
+    state.stepsToNextDrop = randomDropInterval();
+    dropBanana();
+  }
+  checkAchievements();
+  save();
+}
+
+function requestMotion() {
+  if (typeof DeviceMotionEvent !== 'undefined' &&
+      typeof DeviceMotionEvent.requestPermission === 'function') {
+    DeviceMotionEvent.requestPermission()
+      .then(perm => {
+        if (perm === 'granted') enableMotion();
+        else setMotionStatus('denied');
+      })
+      .catch(() => setMotionStatus('denied'));
+  } else if (typeof DeviceMotionEvent !== 'undefined') {
+    enableMotion();
+  } else {
+    setMotionStatus('denied');
+    document.getElementById('sensor-label').textContent = 'Motion not available — use Simulate';
+  }
+}
+
+function enableMotion() {
+  window.addEventListener('devicemotion', onMotion);
+  motionEnabled = true;
+  setMotionStatus('active');
+}
+
+function setMotionStatus(s) {
+  const dot = document.getElementById('sensor-dot');
+  const label = document.getElementById('sensor-label');
+  dot.className = 'status-dot ' + s;
+  if (s === 'active') label.textContent = 'Step tracking active';
+  if (s === 'denied') label.textContent = 'Permission denied — use Simulate';
+}
+
+// ============================================================
+//  BANANA DROP
+// ============================================================
+function pickBanana() {
+  const total = BANANAS.reduce((s, b) => s + b.weight, 0);
+  let r = Math.random() * total;
+  for (const b of BANANAS) {
+    r -= b.weight;
+    if (r <= 0) return b;
+  }
+  return BANANAS[0];
+}
+
+function dropBanana() {
+  const banana = pickBanana();
+  state.collection[banana.id] = (state.collection[banana.id] || 0) + 1;
+  state.totalDropped++;
+  save();
+  showDropNotification(banana);
+  spawnFallingBananas(banana);
+  renderCollection();
+  updateStats();
+  checkAchievements();
+}
+
+function showDropNotification(banana) {
+  const dn = document.getElementById('drop-notif');
+
+  // Set image
+  const img = document.getElementById('dn-img');
+  img.style.animation = 'none';
+  void img.offsetWidth;
+  img.style.animation = '';
+  img.src = banana.img;
+  img.alt = banana.name;
+
+  document.getElementById('dn-title').textContent =
+    state.collection[banana.id] === 1 ? '✨ New Discovery!' : 'Banana Found!';
+  document.getElementById('dn-name').textContent = banana.name;
+
+  const rar = document.getElementById('dn-rarity');
+  rar.textContent = banana.rarityLabel;
+  const colors = {
+    common:    ['#4caf50','#1b5e20'],
+    uncommon:  ['#42a5f5','#0d47a1'],
+    rare:      ['#ce93d8','#4a148c'],
+    epic:      ['#ff8a65','#bf360c'],
+    legendary: ['#f5c518','#5d4037'],
+    mythic:    ['#00E5FF','#311B92'],
+  };
+  const [fg, bg] = colors[banana.rarity] || colors.common;
+  if (banana.rarity === 'mythic') {
+    rar.style.cssText = `background: linear-gradient(90deg,#FF1744,#FF9100,#FFEA00,#00E676,#00B0FF,#651FFF,#D500F9); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;`;
+  } else {
+    rar.style.cssText = `background: ${bg}44; color: ${fg};`;
+  }
+
+  const glows = {
+    common: 'rgba(76,175,80,0.3)',
+    uncommon: 'rgba(66,165,245,0.3)',
+    rare: 'rgba(156,39,176,0.35)',
+    epic: 'rgba(255,87,34,0.35)',
+    legendary: 'rgba(245,197,24,0.5)',
+    mythic: 'rgba(0,229,255,0.5)',
+  };
+  dn.style.borderColor = glows[banana.rarity] || glows.common;
+
+  dn.classList.add('show');
+  setTimeout(() => dn.classList.remove('show'), 2400);
+}
+
+function spawnFallingBananas(banana) {
+  for (let i = 0; i < 6; i++) {
+    setTimeout(() => {
+      const el = document.createElement('div');
+      el.className = 'falling-banana';
+      el.style.left = (8 + Math.random() * 80) + '%';
+      el.style.animationDuration = (1.2 + Math.random() * 0.8) + 's';
+
+      const imgEl = document.createElement('img');
+      imgEl.className = 'fall-img';
+      imgEl.src = banana.img;
+      imgEl.alt = '';
+      const size = 24 + Math.random() * 28;
+      imgEl.style.width = size + 'px';
+      imgEl.style.height = 'auto';
+
+      el.appendChild(imgEl);
+      document.body.appendChild(el);
+      setTimeout(() => el.remove(), 2400);
+    }, i * 130);
+  }
+}
+
+// ============================================================
+//  DAILY STEP TRACKING
+// ============================================================
+function getDateKey() {
+  const d = new Date();
+  return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+}
+
+function recordDailyStep() {
+  const key = getDateKey();
+  state.stepHistory[key] = (state.stepHistory[key] || 0) + 1;
+}
+
+// ============================================================
+//  NET WORTH
+// ============================================================
+function getNetWorth() {
+  let total = 0;
+  for (const b of BANANAS) {
+    if (state.collection[b.id]) {
+      total += RARITY_VALUES[b.rarity] * state.collection[b.id];
+    }
+  }
+  return total;
+}
+
+// ============================================================
+//  UI UPDATES
+// ============================================================
+function updateStepUI() {
+  const disp = document.getElementById('step-display');
+  disp.textContent = state.steps.toLocaleString();
+  disp.classList.remove('ping');
+  void disp.offsetWidth;
+  disp.classList.add('ping');
+
+  const icon = document.querySelector('.step-icon');
+  icon.style.animation = 'none';
+  setTimeout(() => icon.style.animation = '', 10);
+
+  const pct = Math.min(100, (state.stepsSinceLastDrop / state.stepsToNextDrop) * 100);
+  document.getElementById('drop-bar').style.width = pct + '%';
+  const left = state.stepsToNextDrop - state.stepsSinceLastDrop;
+  document.getElementById('drop-steps-left').textContent = left + ' steps';
+}
+
+function renderCollection() {
+  const grid = document.getElementById('collection-grid');
+  const owned = BANANAS.filter(b => state.collection[b.id]);
+
+  if (owned.length === 0) {
+    grid.innerHTML = `<div class="empty-state"><div class="e-icon">🌱</div><p>Walk to discover<br>your first banana!</p></div>`;
+    return;
+  }
+
+  grid.innerHTML = '';
+  const order = { mythic: 0, legendary: 1, epic: 2, rare: 3, uncommon: 4, common: 5 };
+  owned.sort((a, b) => order[a.rarity] - order[b.rarity]);
+
+  owned.forEach(b => {
+    const card = document.createElement('div');
+    card.className = `banana-card r-${b.rarity}`;
+    card.setAttribute('title', b.desc);
+
+    const val = RARITY_VALUES[b.rarity] * state.collection[b.id];
+    card.innerHTML = `
+      <span class="rarity-badge">${b.rarityLabel}</span>
+      <img class="banana-img" src="${b.img}" alt="${b.name}">
+      <div class="b-name">${b.name}</div>
+      <div class="b-count">×${state.collection[b.id]}</div>
+      <div class="b-value">val. ${val.toLocaleString()}</div>
+    `;
+
+    if (state.collection[b.id] === 1) {
+      card.classList.add('new-pop');
+    }
+
+    grid.appendChild(card);
+  });
+
+  document.getElementById('coll-count').textContent =
+    state.totalDropped + ' banana' + (state.totalDropped !== 1 ? 's' : '');
+}
+
+function updateStats() {
+  document.getElementById('stat-total').textContent = state.totalDropped;
+  const unique = Object.keys(state.collection).length;
+  document.getElementById('stat-unique').textContent = unique + '/' + BANANAS.length;
+  document.getElementById('stat-worth').textContent = getNetWorth().toLocaleString();
+
+  const rarityOrder = ['mythic','legendary','epic','rare','uncommon','common'];
+  let rarest = null;
+  for (const tier of rarityOrder) {
+    const found = BANANAS.find(b => b.rarity === tier && state.collection[b.id]);
+    if (found) { rarest = found; break; }
+  }
+  const emojis = { mythic: '🌈', legendary: '⭐', epic: '🔥', rare: '💜', uncommon: '🔵', common: '🟢' };
+  document.getElementById('stat-rarest').textContent =
+    rarest ? (emojis[rarest.rarity] || '') : '—';
+}
+
+// ============================================================
+//  ACHIEVEMENTS
+// ============================================================
+const ACHIEVEMENTS = [
+  // Step milestones
+  { id: 'steps_100',    icon: '👟', name: 'First Steps',       desc: 'Walk 100 steps',              check: () => state.steps >= 100 },
+  { id: 'steps_500',    icon: '🏃', name: 'Getting Warmed Up', desc: 'Walk 500 steps',              check: () => state.steps >= 500 },
+  { id: 'steps_1000',   icon: '🥾', name: 'Marathon Starter',  desc: 'Walk 1,000 steps',            check: () => state.steps >= 1000 },
+  { id: 'steps_5000',   icon: '🔥', name: 'Trail Blazer',      desc: 'Walk 5,000 steps',            check: () => state.steps >= 5000 },
+  { id: 'steps_10000',  icon: '🦿', name: 'Iron Legs',         desc: 'Walk 10,000 steps',           check: () => state.steps >= 10000 },
+  // Collection milestones
+  { id: 'collect_10',   icon: '🍌', name: 'Bunch Collector',   desc: 'Collect 10 bananas',          check: () => state.totalDropped >= 10 },
+  { id: 'collect_50',   icon: '📦', name: 'Banana Hoarder',    desc: 'Collect 50 bananas',          check: () => state.totalDropped >= 50 },
+  { id: 'collect_100',  icon: '👑', name: 'Banana Baron',      desc: 'Collect 100 bananas',         check: () => state.totalDropped >= 100 },
+  { id: 'collect_500',  icon: '💰', name: 'Banana Tycoon',     desc: 'Collect 500 bananas',         check: () => state.totalDropped >= 500 },
+  // Variety milestones
+  { id: 'variety_5',    icon: '🔍', name: 'Curious Forager',   desc: 'Discover 5 varieties',        check: () => Object.keys(state.collection).length >= 5 },
+  { id: 'variety_10',   icon: '🧬', name: 'Expert Botanist',   desc: 'Discover 10 varieties',       check: () => Object.keys(state.collection).length >= 10 },
+  { id: 'variety_all',  icon: '🏆', name: 'Complete Collection', desc: 'Discover all 15 varieties', check: () => Object.keys(state.collection).length >= BANANAS.length },
+  // Rarity milestones
+  { id: 'find_rare',      icon: '💜', name: 'Rare Find',          desc: 'Find a rare banana',      check: () => BANANAS.some(b => b.rarity === 'rare' && state.collection[b.id]) },
+  { id: 'find_epic',      icon: '🔥', name: 'Epic Discovery',     desc: 'Find an epic banana',     check: () => BANANAS.some(b => b.rarity === 'epic' && state.collection[b.id]) },
+  { id: 'find_legendary', icon: '⭐', name: 'Legendary Encounter', desc: 'Find a legendary banana', check: () => BANANAS.some(b => b.rarity === 'legendary' && state.collection[b.id]) },
+  { id: 'find_mythic',    icon: '🌈', name: 'Mythic Miracle',     desc: 'Find the mythic banana',  check: () => BANANAS.some(b => b.rarity === 'mythic' && state.collection[b.id]) },
+  // Dedication
+  { id: 'dedicated_10',  icon: '🌱', name: 'Dedicated Farmer',  desc: 'Collect 10 of one variety',  check: () => Object.values(state.collection).some(c => c >= 10) },
+  { id: 'obsessed_50',   icon: '🤯', name: 'Obsessed',          desc: 'Collect 50 of one variety',  check: () => Object.values(state.collection).some(c => c >= 50) },
+];
+
+let achieveNotifQueue = [];
+let achieveNotifShowing = false;
+
+function checkAchievements() {
+  for (const a of ACHIEVEMENTS) {
+    if (state.achievements.includes(a.id)) continue;
+    if (a.check()) {
+      state.achievements.push(a.id);
+      achieveNotifQueue.push(a);
+      save();
+    }
+  }
+  if (achieveNotifQueue.length > 0 && !achieveNotifShowing) {
+    showNextAchieveNotif();
+  }
+  renderAchievements();
+}
+
+function showNextAchieveNotif() {
+  if (achieveNotifQueue.length === 0) {
+    achieveNotifShowing = false;
+    return;
+  }
+  achieveNotifShowing = true;
+  const a = achieveNotifQueue.shift();
+  const el = document.getElementById('achieve-notif');
+  document.getElementById('an-icon').textContent = a.icon;
+  document.getElementById('an-name').textContent = a.name;
+  document.getElementById('an-desc').textContent = a.desc;
+  el.classList.add('show');
+  setTimeout(() => {
+    el.classList.remove('show');
+    setTimeout(() => showNextAchieveNotif(), 400);
+  }, 2200);
+}
+
+function renderAchievements() {
+  const grid = document.getElementById('achievement-grid');
+  grid.innerHTML = '';
+  const unlocked = state.achievements.length;
+  document.getElementById('achieve-count').textContent = unlocked + ' / ' + ACHIEVEMENTS.length;
+
+  ACHIEVEMENTS.forEach(a => {
+    const card = document.createElement('div');
+    const isUnlocked = state.achievements.includes(a.id);
+    card.className = 'achieve-card ' + (isUnlocked ? 'unlocked' : 'locked');
+    card.innerHTML = `
+      <div class="a-icon">${isUnlocked ? a.icon : '🔒'}</div>
+      <div class="a-info">
+        <div class="a-name">${a.name}</div>
+        <div class="a-desc">${a.desc}</div>
+      </div>
+    `;
+    grid.appendChild(card);
+  });
+}
+
+// ============================================================
+//  STEP HISTORY
+// ============================================================
+let historyTab = 'day';
+
+function setHistoryTab(tab) {
+  historyTab = tab;
+  document.querySelectorAll('.history-tab').forEach(el => el.classList.remove('active'));
+  const active = document.querySelector('.history-tab[data-tab="' + tab + '"]');
+  if (active) active.classList.add('active');
+  renderHistory();
+}
+
+function getWeekStart(dateStr) {
+  const d = new Date(dateStr + 'T00:00:00');
+  const day = d.getDay();
+  const diff = day === 0 ? 6 : day - 1;
+  d.setDate(d.getDate() - diff);
+  return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+}
+
+function formatDate(dateStr) {
+  const [y, m, d] = dateStr.split('-');
+  const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  return months[parseInt(m) - 1] + ' ' + parseInt(d) + ', ' + y;
+}
+
+function formatMonth(monthStr) {
+  const [y, m] = monthStr.split('-');
+  const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  return months[parseInt(m) - 1] + ' ' + y;
+}
+
+function renderHistory() {
+  const display = document.getElementById('history-display');
+  const h = state.stepHistory || {};
+  const today = getDateKey();
+  let currentTotal = 0;
+  let bestTotal = 0;
+  let bestLabel = '';
+  const entries = Object.entries(h);
+
+  if (historyTab === 'day') {
+    currentTotal = h[today] || 0;
+    for (const [date, steps] of entries) {
+      if (steps > bestTotal) { bestTotal = steps; bestLabel = formatDate(date); }
+    }
+  } else if (historyTab === 'week') {
+    const thisWeek = getWeekStart(today);
+    const weeks = {};
+    for (const [date, steps] of entries) {
+      const ws = getWeekStart(date);
+      weeks[ws] = (weeks[ws] || 0) + steps;
+      if (ws === thisWeek) currentTotal += steps;
+    }
+    for (const [ws, steps] of Object.entries(weeks)) {
+      if (steps > bestTotal) { bestTotal = steps; bestLabel = 'Week of ' + formatDate(ws); }
+    }
+  } else if (historyTab === 'month') {
+    const thisMonth = today.substring(0, 7);
+    const months = {};
+    for (const [date, steps] of entries) {
+      const m = date.substring(0, 7);
+      months[m] = (months[m] || 0) + steps;
+      if (m === thisMonth) currentTotal += steps;
+    }
+    for (const [m, steps] of Object.entries(months)) {
+      if (steps > bestTotal) { bestTotal = steps; bestLabel = formatMonth(m); }
+    }
+  } else if (historyTab === 'year') {
+    const thisYear = today.substring(0, 4);
+    const years = {};
+    for (const [date, steps] of entries) {
+      const y = date.substring(0, 4);
+      years[y] = (years[y] || 0) + steps;
+      if (y === thisYear) currentTotal += steps;
+    }
+    for (const [y, steps] of Object.entries(years)) {
+      if (steps > bestTotal) { bestTotal = steps; bestLabel = y; }
+    }
+  }
+
+  const periodLabels = { day: 'Today', week: 'This Week', month: 'This Month', year: 'This Year' };
+  const bestLabels = { day: 'Best Day', week: 'Best Week', month: 'Best Month', year: 'Best Year' };
+
+  display.innerHTML = `
+    <div class="history-card">
+      <div class="hc-label">${periodLabels[historyTab]}</div>
+      <div class="hc-value">${currentTotal.toLocaleString()}</div>
+      <div class="hc-sub">steps</div>
+    </div>
+    <div class="history-card">
+      <div class="hc-label">${bestLabels[historyTab]}</div>
+      <div class="hc-value">${bestTotal.toLocaleString()}</div>
+      <div class="hc-sub">${bestLabel || 'No data yet'}</div>
+    </div>
+  `;
+}
+
+// ============================================================
+//  SIMULATE
+// ============================================================
+let simInterval = null;
+function simulateSteps() {
+  if (simInterval) {
+    clearInterval(simInterval);
+    simInterval = null;
+    document.getElementById('sim-btn').textContent = '👟 Simulate Steps';
+    return;
+  }
+  document.getElementById('sim-btn').textContent = '⏹ Stop Sim';
+  simInterval = setInterval(() => {
+    for (let i = 0; i < 3; i++) registerStep();
+  }, 300);
+}
+
+// ============================================================
+//  RESET
+// ============================================================
+function resetGame() {
+  if (!confirm('Reset all progress? This cannot be undone.')) return;
+  if (simInterval) { clearInterval(simInterval); simInterval = null; }
+  state = {
+    steps: 0,
+    stepsToNextDrop: randomDropInterval(),
+    stepsSinceLastDrop: 0,
+    collection: {},
+    totalDropped: 0,
+    achievements: [],
+    stepHistory: {},
+  };
+  save();
+  updateStepUI();
+  renderCollection();
+  updateStats();
+  renderAchievements();
+  renderHistory();
+  document.getElementById('sim-btn').textContent = '👟 Simulate Steps';
+}
+
+// ============================================================
+//  INIT
+// ============================================================
+updateStepUI();
+renderCollection();
+updateStats();
+renderAchievements();
+renderHistory();
+
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('./sw.js').catch(() => {});
+}
+
+// Auto-enable on desktop (no iOS permission needed)
+if (typeof DeviceMotionEvent !== 'undefined' &&
+    typeof DeviceMotionEvent.requestPermission !== 'function') {
+  enableMotion();
+}
+</script>
+</body>
+</html>

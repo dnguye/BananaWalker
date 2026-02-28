@@ -1,0 +1,34 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 200">
+  <defs>
+    <linearGradient id="mo-body" x1="0" y1="0" x2="0.5" y2="1">
+      <stop offset="0%" stop-color="#FF6E40"/>
+      <stop offset="40%" stop-color="#FF3D00"/>
+      <stop offset="100%" stop-color="#BF360C"/>
+    </linearGradient>
+    <linearGradient id="mo-lava" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#FFAB40"/>
+      <stop offset="100%" stop-color="#FF6D00"/>
+    </linearGradient>
+    <filter id="mo-glow" x="-30%" y="-20%" width="160%" height="150%">
+      <feDropShadow dx="0" dy="2" stdDeviation="6" flood-color="#FF3D00" flood-opacity="0.5"/>
+    </filter>
+  </defs>
+  <g filter="url(#mo-glow)">
+    <!-- Main banana body -->
+    <path d="M 65 160 C 78 135, 84 105, 80 70 C 76 42, 66 22, 52 16 C 46 14, 42 18, 45 26 C 52 42, 56 60, 56 80 C 56 115, 48 140, 40 160 Z"
+          fill="url(#mo-body)" stroke="#BF360C" stroke-width="1"/>
+    <!-- Lava drips hanging from bottom -->
+    <path d="M 42 158 C 42 165, 44 175, 42 185 C 41 190, 39 190, 40 185" fill="url(#mo-lava)" opacity="0.9"/>
+    <path d="M 50 162 C 50 170, 52 182, 50 192 C 49 196, 47 196, 48 192" fill="url(#mo-lava)" opacity="0.85"/>
+    <path d="M 58 160 C 59 166, 60 174, 58 180 C 57 183, 55 183, 56 180" fill="url(#mo-lava)" opacity="0.8"/>
+    <path d="M 63 156 C 64 162, 65 170, 63 176 C 62 179, 60 178, 61 175" fill="url(#mo-lava)" opacity="0.9"/>
+    <!-- Hot cracks/veins -->
+    <path d="M 56 40 C 60 55, 58 70, 62 90" stroke="#FFAB40" stroke-width="1.5" fill="none" opacity="0.7"/>
+    <path d="M 48 70 C 54 80, 52 95, 56 110" stroke="#FFAB40" stroke-width="1" fill="none" opacity="0.6"/>
+    <path d="M 60 100 C 55 115, 52 130, 48 145" stroke="#FFAB40" stroke-width="1.2" fill="none" opacity="0.5"/>
+    <!-- Stem (charred) -->
+    <path d="M 52 16 C 54 10, 60 5, 58 1" stroke="#4E342E" stroke-width="3.5" fill="none" stroke-linecap="round"/>
+    <!-- Glow highlights -->
+    <path d="M 62 35 C 68 55, 68 80, 63 110" stroke="rgba(255,171,64,0.4)" stroke-width="3" fill="none" stroke-linecap="round"/>
+  </g>
+</svg>

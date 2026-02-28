@@ -1,0 +1,36 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 200">
+  <defs>
+    <linearGradient id="cr-body" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#CE93D8"/>
+      <stop offset="50%" stop-color="#AB47BC"/>
+      <stop offset="100%" stop-color="#7B1FA2"/>
+    </linearGradient>
+    <linearGradient id="cr-facet" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="rgba(255,255,255,0.3)"/>
+      <stop offset="100%" stop-color="rgba(255,255,255,0)"/>
+    </linearGradient>
+    <filter id="cr-glow" x="-30%" y="-30%" width="160%" height="160%">
+      <feDropShadow dx="0" dy="2" stdDeviation="5" flood-color="#9C27B0" flood-opacity="0.4"/>
+    </filter>
+  </defs>
+  <g filter="url(#cr-glow)">
+    <!-- Angular/faceted banana body -->
+    <polygon points="58,14 50,18 42,35 40,60 44,90 42,120 48,155 52,170 58,170 68,155 72,120 74,90 78,60 76,35 68,18"
+             fill="url(#cr-body)" stroke="#6A1B9A" stroke-width="1"/>
+    <!-- Crystal facet lines -->
+    <line x1="50" y1="18" x2="68" y2="60" stroke="rgba(255,255,255,0.25)" stroke-width="1"/>
+    <line x1="42" y1="60" x2="74" y2="90" stroke="rgba(255,255,255,0.2)" stroke-width="1"/>
+    <line x1="44" y1="90" x2="72" y2="120" stroke="rgba(255,255,255,0.2)" stroke-width="1"/>
+    <line x1="42" y1="120" x2="68" y2="155" stroke="rgba(255,255,255,0.15)" stroke-width="1"/>
+    <line x1="58" y1="14" x2="58" y2="170" stroke="rgba(255,255,255,0.1)" stroke-width="0.8"/>
+    <!-- Facet shine areas -->
+    <polygon points="58,14 50,18 42,35 58,50 68,18" fill="url(#cr-facet)"/>
+    <polygon points="58,50 42,60 44,90 58,80 74,90 78,60" fill="rgba(255,255,255,0.08)"/>
+    <!-- Stem -->
+    <path d="M 58 14 C 60 8, 64 4, 62 0" stroke="#9C27B0" stroke-width="3" fill="none" stroke-linecap="round"/>
+    <!-- Sparkle points -->
+    <circle cx="52" cy="40" r="2" fill="white" opacity="0.7"/>
+    <circle cx="66" cy="80" r="1.5" fill="white" opacity="0.5"/>
+    <circle cx="50" cy="115" r="1.8" fill="white" opacity="0.6"/>
+  </g>
+</svg>
